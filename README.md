@@ -1,15 +1,4 @@
-# 🚀 Welcome to your new awesome project!
+RSS aggregator
 
-This project has been created using **webpack-cli**, you can now run
-
-```
-npm run build
-```
-
-or
-
-```
-yarn build
-```
-
-to bundle your application
+Link to the current working build:
+https://frontend-project-lvl3-navy-nine.vercel.app/
