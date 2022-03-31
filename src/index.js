@@ -13,6 +13,8 @@ const state = {
   filling: true,
   error: '',
   usedUrls: [],
+  posts: [],
+  feeds: [],
   language: defaultLanguage,
 }
 

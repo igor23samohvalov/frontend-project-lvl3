@@ -1,7 +1,8 @@
  import onChange from "on-change";
  import _ from 'lodash';
+ import axios from "axios";
 
- function renderPost(item, i18n) {
+ function renderPosts(posts, i18n) {
   if (document.querySelector('.posts .card-body') === null) {
     const div = document.createElement('div');
     div.classList.add('card-body');
@@ -14,24 +15,28 @@
     document.querySelector('.posts').prepend(div);
   }
 
-  const li = document.createElement('li');
-  li.classList.add('list-group-item', 'justify-content-between', 'align-items-start', 'border-0', 'd-flex');
+  document.querySelector('.posts .list-group').innerHTML = '';
 
-  const a = document.createElement('a');
-  a.href = item.querySelector('link').textContent;
-  a.textContent = item.querySelector('title').textContent;
-  a.classList.add('fw-bold');
+  posts.forEach((post) => {
+    const li = document.createElement('li');
+    li.classList.add('list-group-item', 'justify-content-between', 'align-items-start', 'border-0', 'd-flex');
+  
+    const a = document.createElement('a');
+    a.href = post.link;
+    a.textContent = post.title;
+    a.classList.add('fw-bold');
 
-  const button = document.createElement('button');
-  button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
-  button.textContent = i18n.t('showButton');
+    const button = document.createElement('button');
+    button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
+    button.textContent = i18n.t('showButton');
 
-  li.append(a);
-  li.append(button);
-  document.querySelector('.posts .list-group').append(li);
+    li.append(a);
+    li.append(button);
+    document.querySelector('.posts .list-group').prepend(li);
+  })
 }
 
-function renderFeed(item, i18n) {
+function renderFeeds(feeds, i18n) {
   if (document.querySelector('.feeds .card-body') === null) {
     const div = document.createElement('div');
     div.classList.add('card-body');
@@ -44,20 +49,24 @@ function renderFeed(item, i18n) {
     document.querySelector('.feeds').prepend(div);
   }
 
-  const li = document.createElement('li');
-  li.classList.add('list-group-item', 'justify-content-between', 'border-0');
+  document.querySelector('.feeds .list-group').innerHTML = '';
 
-  const h3 = document.createElement('h3');
-  h3.classList.add('h6');
-  h3.textContent = item.querySelector('title').textContent;
-
-  const p = document.createElement('p');
-  p.classList.add('small', 'text-black-50');
-  p.textContent = item.querySelector('description').textContent;
-
-  li.append(h3);
-  li.append(p);
-  document.querySelector('.feeds .list-group').append(li);
+  feeds.forEach((feed) => {
+    const li = document.createElement('li');
+    li.classList.add('list-group-item', 'justify-content-between', 'border-0');
+  
+    const h3 = document.createElement('h3');
+    h3.classList.add('h6');
+    h3.textContent = feed.title;
+  
+    const p = document.createElement('p');
+    p.classList.add('small', 'text-black-50');
+    p.textContent = feed.description;
+  
+    li.append(h3);
+    li.append(p);
+    document.querySelector('.feeds .list-group').prepend(li);
+  })
 }
 
 function view(state, validate, i18n) {
@@ -90,6 +99,12 @@ function view(state, validate, i18n) {
         break;
       case 'filling':
         break;
+      case 'posts':
+        renderPosts(value, i18n);
+        break;
+      case 'feeds':
+        renderFeeds(value, i18n);
+        break
       default:
         console.log('undefined option');
         break;
@@ -105,33 +120,45 @@ function view(state, validate, i18n) {
   })
 
   const getData = (url) => {
-    fetch(url)
-      .then((res) => {
-        if (res.status >= 200 && res.status <= 299) {
-          return res.text();
-        } else {
-          console.log('fk')
-        }
-      })
-      .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
-      .then((data) => {
-        renderFeed(data.querySelector('channel'), i18n);
-  
-        const items = data.querySelectorAll('item');
-        items.forEach((item) => {
-          renderPost(item, i18n)
-        });
+    axios.get(url)
 
-        rssInput.classList.remove('is-invalid');
+      .then((res) => new window.DOMParser().parseFromString(res.data, "text/xml"))
+      .then((data) => {
+        watchedState.feeds.push({
+          title: data.querySelector('channel title').textContent,
+          description: data.querySelector('channel description').textContent,
+        })
+        
+        const items = Array.from(data.querySelectorAll('item')).map((item) => {
+          return {
+            link: item.querySelector('link').textContent,
+            title: item.querySelector('title').textContent,
+          };
+        });
+        watchedState.posts.push(...items)
+
         feedback.classList.remove('text-danger');
         feedback.classList.add('text-success');
         feedback.textContent = i18n.t('feedbackSuccess');
+
+        rssInput.classList.remove('is-invalid');
         rssInput.value = '';
         rssInput.focus();
+
         onChange.target(watchedState).usedUrls.push(state.rssInput);
       })
-      .catch(error => {
-        console.log(error);
+      .catch((error) => {
+        if (error.response) {
+          console.log(error.response.data + ' error response');
+          console.log(error.response.status + ' error response');
+          console.log(error.response.headers + ' error response');
+        } else if (error.request) {
+          console.log(error.request + ' error request');
+        } else {
+          console.log('Error', error.message + ' error message');
+        }
+        console.log(error.config);
+
         onChange.target(watchedState).isValid = '';
         onChange.target(watchedState).error = i18n.t('feedbackOnloadProb');
 
