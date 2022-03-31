@@ -1,9 +1,30 @@
 import * as yup from 'yup';
 import view from './view.js';
 import '../main.css';
+import i18next from 'i18next';
+import resources from './locales/index.js';
+import translate from './translate.js';
+
+const defaultLanguage = 'ru';
+
+const state = {
+  rssInput: '',
+  isValid: '',
+  filling: true,
+  error: '',
+  usedUrls: [],
+  language: defaultLanguage,
+}
+
+const i18n = i18next.createInstance()
+i18n.init({
+    lng: state.language, 
+    debug: true,
+    resources,
+  });
 
 const schema = yup.object().shape({
-  url: yup.string().url('Ссылка должна быть валидным URL').required()
+  url: yup.string().url(i18n.t('feedbackIsInvalid')).required()
 });
 
 const validate = (fields) => {
@@ -15,12 +36,6 @@ const validate = (fields) => {
   }
 };
 
-const state = {
-  rssInput: '',
-  isValid: '',
-  filling: true,
-  error: '',
-  usedUrls: [],
-}
+translate(i18n);
 
-view(state, validate);
+view(state, validate, i18n);

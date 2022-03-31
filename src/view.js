@@ -1,14 +1,14 @@
  import onChange from "on-change";
  import _ from 'lodash';
 
- function renderPost(item) {
+ function renderPost(item, i18n) {
   if (document.querySelector('.posts .card-body') === null) {
     const div = document.createElement('div');
     div.classList.add('card-body');
 
     const h2 = document.createElement('h2');
     h2.classList.add('card-title', 'h4');
-    h2.textContent = 'Посты';
+    h2.textContent = i18n.t('postsHeader');
 
     div.append(h2);
     document.querySelector('.posts').prepend(div);
@@ -24,21 +24,21 @@
 
   const button = document.createElement('button');
   button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
-  button.textContent = 'Просмотр';
+  button.textContent = i18n.t('showButton');
 
   li.append(a);
   li.append(button);
   document.querySelector('.posts .list-group').append(li);
 }
 
-function renderFeed(item) {
+function renderFeed(item, i18n) {
   if (document.querySelector('.feeds .card-body') === null) {
     const div = document.createElement('div');
     div.classList.add('card-body');
 
     const h2 = document.createElement('h2');
     h2.classList.add('card-title', 'h4');
-    h2.textContent = 'Фиды';
+    h2.textContent = i18n.t('feedsHeader');
 
     div.append(h2);
     document.querySelector('.feeds').prepend(div);
@@ -60,7 +60,7 @@ function renderFeed(item) {
   document.querySelector('.feeds .list-group').append(li);
 }
 
-function view(state, validate) {
+function view(state, validate, i18n) {
   const form = document.querySelector('form');
   const rssInput = document.querySelector('#rssInput');
   const feedback = document.querySelector('.feedback');
@@ -69,7 +69,7 @@ function view(state, validate) {
     switch (path) {
       case 'rssInput':
         if (state.usedUrls.includes(value)) {
-          onChange.target(watchedState).error = 'RSS уже существует';
+          onChange.target(watchedState).error = i18n.t('feedbackRssExists');
           watchedState.isValid = false;
         } else if (_.isEmpty(validate({url: value}))) {
           watchedState.isValid = true;
@@ -115,17 +115,17 @@ function view(state, validate) {
       })
       .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
       .then((data) => {
-        renderFeed(data.querySelector('channel'));
+        renderFeed(data.querySelector('channel'), i18n);
   
         const items = data.querySelectorAll('item');
         items.forEach((item) => {
-          renderPost(item)
+          renderPost(item, i18n)
         });
 
         rssInput.classList.remove('is-invalid');
         feedback.classList.remove('text-danger');
         feedback.classList.add('text-success');
-        feedback.textContent = 'RSS успешно загружен';
+        feedback.textContent = i18n.t('feedbackSuccess');
         rssInput.value = '';
         rssInput.focus();
         onChange.target(watchedState).usedUrls.push(state.rssInput);
@@ -133,7 +133,7 @@ function view(state, validate) {
       .catch(error => {
         console.log(error);
         onChange.target(watchedState).isValid = '';
-        onChange.target(watchedState).error = 'Неизвестная ошибка. Что-то пошло не так.';
+        onChange.target(watchedState).error = i18n.t('feedbackOnloadProb');
 
         watchedState.isValid = false;
       })
