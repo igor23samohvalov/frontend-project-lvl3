@@ -1,8 +1,8 @@
- import onChange from "on-change";
- import _ from 'lodash';
- import axios from "axios";
+import onChange from "on-change";
+import _ from 'lodash';
+import axios from "axios";
 
- function renderPosts(posts, i18n) {
+function renderPosts(posts, i18n) {
   if (document.querySelector('.posts .card-body') === null) {
     const div = document.createElement('div');
     div.classList.add('card-body');
@@ -74,6 +74,40 @@ function view(state, validate, i18n) {
   const rssInput = document.querySelector('#rssInput');
   const feedback = document.querySelector('.feedback');
 
+  function loopUpdate() {
+    if (state.usedUrls.length === 0) {
+
+      return setTimeout(loopUpdate, 5000);
+    }
+    setTimeout(() => {
+      let currentPosts = [];
+      let requests = state.usedUrls.map(url => {       
+        return axios.get(url).then((res) => new window.DOMParser().parseFromString(res.data, "text/xml"))
+      });
+
+      Promise.all(requests)
+        .then(responses => {
+          responses.forEach((data) => {
+          const items = Array.from(data.querySelectorAll('item')).map((item) => {
+            return {
+              link: item.querySelector('link').textContent,
+              title: item.querySelector('title').textContent,
+            };
+          });
+
+          currentPosts.push(...items)
+        })})
+        .then(() => {
+          watchedState.posts = [...currentPosts];
+        })
+        .catch(console.log)
+  
+      return loopUpdate();
+    }, 5000)
+  }
+
+  loopUpdate()
+
   const watchedState = onChange(state, (path, value) => {
     switch (path) {
       case 'rssInput':
@@ -104,7 +138,7 @@ function view(state, validate, i18n) {
         break;
       case 'feeds':
         renderFeeds(value, i18n);
-        break
+        break;
       default:
         console.log('undefined option');
         break;
@@ -124,6 +158,11 @@ function view(state, validate, i18n) {
 
       .then((res) => new window.DOMParser().parseFromString(res.data, "text/xml"))
       .then((data) => {
+        // const currentFeed = {
+        //   title: data.querySelector('channel title').textContent,
+        //   description: data.querySelector('channel description').textContent,
+        // }
+
         watchedState.feeds.push({
           title: data.querySelector('channel title').textContent,
           description: data.querySelector('channel description').textContent,
@@ -146,6 +185,7 @@ function view(state, validate, i18n) {
         rssInput.focus();
 
         onChange.target(watchedState).usedUrls.push(state.rssInput);
+
       })
       .catch((error) => {
         if (error.response) {
