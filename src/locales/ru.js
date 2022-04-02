@@ -12,5 +12,7 @@ export default {
     "postsHeader": "Посты",
     "showButton": "Показать",
     "example": "Пример: https://ru.hexlet.io/lessons.rss",
+    "modalCloseButton": "Закрыть",
+    "modalFollowLinkButton": "Читать полностью",
   },
 };

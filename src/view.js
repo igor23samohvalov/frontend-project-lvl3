@@ -1,8 +1,9 @@
 import onChange from "on-change";
 import _ from 'lodash';
 import axios from "axios";
+import bootstrap from "bootstrap";
 
-function renderPosts(posts, i18n) {
+function renderPosts(posts, i18n, state) {
   if (document.querySelector('.posts .card-body') === null) {
     const div = document.createElement('div');
     div.classList.add('card-body');
@@ -21,18 +22,39 @@ function renderPosts(posts, i18n) {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'justify-content-between', 'align-items-start', 'border-0', 'd-flex');
   
+    
     const a = document.createElement('a');
+    if (state.clickedPostsIds.includes(post.id)) {
+      a.className = 'fw-normal';
+    } else {
+      a.className = 'fw-bold'
+    }
     a.href = post.link;
     a.textContent = post.title;
-    a.classList.add('fw-bold');
+    a.setAttribute('target', '_blank');
+    a.setAttribute('data-id', post.id);
+    a.addEventListener('click', () => {
+      a.className = 'fw-normal';
+      if (!state.clickedPostsIds.includes(post.id)) {
+        state.clickedPostsIds.push(post.id);
+      }
+    });
 
     const button = document.createElement('button');
     button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
+    button.setAttribute('type', 'button');
+    button.setAttribute('data-bs-toggle', 'modal');
+    button.setAttribute('data-bs-target', '#modal')
     button.textContent = i18n.t('showButton');
+    button.addEventListener('click', () => {
+      document.querySelector('.modal-title').textContent = post.title;
+      document.querySelector('.modal-body p').textContent = post.description;
+      document.querySelector('.modal-footer .btn-primary').setAttribute('href', post.link);
+    })
 
     li.append(a);
     li.append(button);
-    document.querySelector('.posts .list-group').prepend(li);
+    document.querySelector('.posts .list-group').append(li);
   })
 }
 
@@ -80,28 +102,8 @@ function view(state, validate, i18n) {
       return setTimeout(loopUpdate, 5000);
     }
     setTimeout(() => {
-      let currentPosts = [];
-      let requests = state.usedUrls.map(url => {       
-        return axios.get(url).then((res) => new window.DOMParser().parseFromString(res.data, "text/xml"))
-      });
+      fetchData(false);
 
-      Promise.all(requests)
-        .then(responses => {
-          responses.forEach((data) => {
-          const items = Array.from(data.querySelectorAll('item')).map((item) => {
-            return {
-              link: item.querySelector('link').textContent,
-              title: item.querySelector('title').textContent,
-            };
-          });
-
-          currentPosts.push(...items)
-        })})
-        .then(() => {
-          watchedState.posts = [...currentPosts];
-        })
-        .catch(console.log)
-  
       return loopUpdate();
     }, 5000)
   }
@@ -123,7 +125,8 @@ function view(state, validate, i18n) {
         break;
       case 'isValid':
         if (value) {
-          getData(state.rssInput);
+          onChange.target(watchedState).usedUrls.push(state.rssInput);
+          fetchData();
         } else {
           rssInput.classList.add('is-invalid');
           feedback.classList.remove('text-success');
@@ -134,7 +137,7 @@ function view(state, validate, i18n) {
       case 'filling':
         break;
       case 'posts':
-        renderPosts(value, i18n);
+        renderPosts(value, i18n, state);
         break;
       case 'feeds':
         renderFeeds(value, i18n);
@@ -145,36 +148,40 @@ function view(state, validate, i18n) {
     }
   })
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    onChange.target(watchedState).rssInput = '';
-    onChange.target(watchedState).isValid = '';
+  const fetchData = (updateFeed = true) => {
+    let currentPosts = [];
 
-    watchedState.rssInput = rssInput.value;
-  })
+    let requests = state.usedUrls.map(url => {       
+      return axios.get(url).then((res) => new window.DOMParser().parseFromString(res.data, "text/xml"))
+    });
 
-  const getData = (url) => {
-    axios.get(url)
+    Promise.all(requests)
+      .then(responses => {
+        let id = 0;
 
-      .then((res) => new window.DOMParser().parseFromString(res.data, "text/xml"))
-      .then((data) => {
-        // const currentFeed = {
-        //   title: data.querySelector('channel title').textContent,
-        //   description: data.querySelector('channel description').textContent,
-        // }
+        responses.forEach((data) => {
+          if (updateFeed) {
+            watchedState.feeds.push({
+              title: data.querySelector('channel title').textContent,
+              description: data.querySelector('channel description').textContent,
+            })
+          }
+          
+          const posts = Array.from(data.querySelectorAll('item')).map((post) => {
+            id += 1;
 
-        watchedState.feeds.push({
-          title: data.querySelector('channel title').textContent,
-          description: data.querySelector('channel description').textContent,
-        })
-        
-        const items = Array.from(data.querySelectorAll('item')).map((item) => {
-          return {
-            link: item.querySelector('link').textContent,
-            title: item.querySelector('title').textContent,
-          };
-        });
-        watchedState.posts.push(...items)
+            return {
+              link: post.querySelector('link').textContent,
+              title: post.querySelector('title').textContent,
+              description: post.querySelector('description').textContent,
+              id: id,
+            };
+          });
+
+        currentPosts.unshift(...posts)
+      })})
+      .then(() => {
+        watchedState.posts = [...currentPosts];
 
         feedback.classList.remove('text-danger');
         feedback.classList.add('text-success');
@@ -183,28 +190,39 @@ function view(state, validate, i18n) {
         rssInput.classList.remove('is-invalid');
         rssInput.value = '';
         rssInput.focus();
-
-        onChange.target(watchedState).usedUrls.push(state.rssInput);
-
       })
       .catch((error) => {
-        if (error.response) {
-          console.log(error.response.data + ' error response');
-          console.log(error.response.status + ' error response');
-          console.log(error.response.headers + ' error response');
-        } else if (error.request) {
-          console.log(error.request + ' error request');
-        } else {
-          console.log('Error', error.message + ' error message');
-        }
-        console.log(error.config);
-
+        console.log(error)
+        onChange.target(watchedState).usedUrls.pop();
         onChange.target(watchedState).isValid = '';
         onChange.target(watchedState).error = i18n.t('feedbackOnloadProb');
 
         watchedState.isValid = false;
       })
   }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    onChange.target(watchedState).rssInput = '';
+    onChange.target(watchedState).isValid = '';
+
+    watchedState.rssInput = rssInput.value;
+  })
+
+  document.querySelector('.modal-footer .btn-primary').addEventListener('click', (e) => {
+
+    Array.from(document.querySelectorAll('.posts ul li')).forEach((li) => {
+      const a = li.querySelector('a')
+
+      if (a.href === e.target.href) {
+        a.className = 'fw-normal';
+        if (!state.clickedPostsIds.includes(Number(a.dataset.id))) {
+          state.clickedPostsIds.push(Number(a.dataset.id));
+        }
+      }
+    })
+
+  })
 }
 
 export default view;

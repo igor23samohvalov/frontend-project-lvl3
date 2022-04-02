@@ -14,6 +14,7 @@ const state = {
   error: '',
   usedUrls: [],
   posts: [],
+  clickedPostsIds: [],
   feeds: [],
   language: defaultLanguage,
 }
