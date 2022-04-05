@@ -18,7 +18,7 @@ export default () => {
     tempContents: [],
     language: defaultLanguage,
   }
-  console.log(state)
+  
   const i18n = i18next.createInstance()
   i18n.init({
       lng: state.language, 
