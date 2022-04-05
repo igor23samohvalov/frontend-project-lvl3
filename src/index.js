@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 import view from './view.js';
-import '../main.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import i18next from 'i18next';
 import resources from './locales/index.js';
 import translate from './translate.js';
