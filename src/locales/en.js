@@ -10,6 +10,7 @@ export default {
     "feedbackNoInternet": "Network error",
     "feedbackRssExists": "RSS is already added",
     "feedbackIsInvalid": "Invalid URL",
+    "shouldNotBeEmpty": "Field is required",
     "feedsHeader": "Feeds",
     "postsHeader": "Posts",
     "showButton": "Show",

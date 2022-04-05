@@ -10,6 +10,7 @@ export default {
     "feedbackNoInternet": "Ошибка сети",
     "feedbackRssExists": "RSS уже существует",
     "feedbackIsInvalid": "Ссылка должна быть валидным URL",
+    "shouldNotBeEmpty": "Не должно быть пустым",
     "feedsHeader": "Фиды",
     "postsHeader": "Посты",
     "showButton": "Показать",

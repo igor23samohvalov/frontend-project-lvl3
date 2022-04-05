@@ -18,7 +18,7 @@ export default () => {
     tempContents: [],
     language: defaultLanguage,
   }
-  
+
   const i18n = i18next.createInstance()
   i18n.init({
       lng: state.language, 
@@ -27,7 +27,7 @@ export default () => {
     });
 
   const schema = yup.object().shape({
-    url: yup.string().url(i18n.t('feedbackIsInvalid')).required()
+    url: yup.string().url(i18n.t('feedbackIsInvalid')).required(i18n.t('shouldNotBeEmpty'))
   });
 
   const validate = (fields) => {

@@ -66,6 +66,7 @@ function view(state, validate, i18n) {
     console.log(urls)
     const requests = urls.map(url => axios.get(`https://allorigins.hexlet.app/raw?disableCache=true&url=${url}`)
       .then(res => {
+        console.log(res.status)
         return {
           data: new window.DOMParser().parseFromString(res.data, "text/xml"),
           url: _.last(res.request.responseURL.split('&url='))
@@ -122,8 +123,13 @@ function view(state, validate, i18n) {
       watchedFormState.state = 'failed';
     } else if (_.isEmpty(validate({url: rssInput.value}))) {
       watchedFormState.state = 'sending';
+    } else if (rssInput.value === '') {
+      onChange.target(watchedFormState).errorMessage = i18n.t('shouldNotBeEmpty');
+      onChange.target(watchedFormState).state = '';
+      watchedFormState.state = 'failed';
     } else {
       onChange.target(watchedFormState).errorMessage = validate({url: rssInput.value})[0].message;
+      onChange.target(watchedFormState).state = '';
       watchedFormState.state = 'failed';
     }
   })
