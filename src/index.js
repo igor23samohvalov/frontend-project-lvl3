@@ -8,14 +8,12 @@ import translate from './translate.js';
 const defaultLanguage = 'ru';
 
 const state = {
-  rssInput: '',
-  isValid: '',
-  filling: true,
-  error: '',
-  usedUrls: [],
-  posts: [],
-  clickedPostsIds: [],
-  feeds: [],
+  formState: {
+    state: 'ready',
+    errorMessage: '',
+  },
+  contents: [],
+  tempContents: [],
   language: defaultLanguage,
 }
 

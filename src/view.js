@@ -1,108 +1,24 @@
-import onChange from "on-change";
+import 'bootstrap';
+import onChange from 'on-change';
 import _ from 'lodash';
-import axios from "axios";
-import bootstrap from "bootstrap";
-
-function renderPosts(posts, i18n, state) {
-  if (document.querySelector('.posts .card-body') === null) {
-    const div = document.createElement('div');
-    div.classList.add('card-body');
-
-    const h2 = document.createElement('h2');
-    h2.classList.add('card-title', 'h4');
-    h2.textContent = i18n.t('postsHeader');
-
-    div.append(h2);
-    document.querySelector('.posts').prepend(div);
-  }
-
-  document.querySelector('.posts .list-group').innerHTML = '';
-
-  posts.forEach((post) => {
-    const li = document.createElement('li');
-    li.classList.add('list-group-item', 'justify-content-between', 'align-items-start', 'border-0', 'd-flex');
-  
-    
-    const a = document.createElement('a');
-    if (state.clickedPostsIds.includes(post.id)) {
-      a.className = 'fw-normal';
-    } else {
-      a.className = 'fw-bold'
-    }
-    a.href = post.link;
-    a.textContent = post.title;
-    a.setAttribute('target', '_blank');
-    a.setAttribute('data-id', post.id);
-    a.addEventListener('click', () => {
-      a.className = 'fw-normal';
-      if (!state.clickedPostsIds.includes(post.id)) {
-        state.clickedPostsIds.push(post.id);
-      }
-    });
-
-    const button = document.createElement('button');
-    button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
-    button.setAttribute('type', 'button');
-    button.setAttribute('data-bs-toggle', 'modal');
-    button.setAttribute('data-bs-target', '#modal')
-    button.textContent = i18n.t('showButton');
-    button.addEventListener('click', () => {
-      document.querySelector('.modal-title').textContent = post.title;
-      document.querySelector('.modal-body p').textContent = post.description;
-      document.querySelector('.modal-footer .btn-primary').setAttribute('href', post.link);
-    })
-
-    li.append(a);
-    li.append(button);
-    document.querySelector('.posts .list-group').append(li);
-  })
-}
-
-function renderFeeds(feeds, i18n) {
-  if (document.querySelector('.feeds .card-body') === null) {
-    const div = document.createElement('div');
-    div.classList.add('card-body');
-
-    const h2 = document.createElement('h2');
-    h2.classList.add('card-title', 'h4');
-    h2.textContent = i18n.t('feedsHeader');
-
-    div.append(h2);
-    document.querySelector('.feeds').prepend(div);
-  }
-
-  document.querySelector('.feeds .list-group').innerHTML = '';
-
-  feeds.forEach((feed) => {
-    const li = document.createElement('li');
-    li.classList.add('list-group-item', 'justify-content-between', 'border-0');
-  
-    const h3 = document.createElement('h3');
-    h3.classList.add('h6');
-    h3.textContent = feed.title;
-  
-    const p = document.createElement('p');
-    p.classList.add('small', 'text-black-50');
-    p.textContent = feed.description;
-  
-    li.append(h3);
-    li.append(p);
-    document.querySelector('.feeds .list-group').prepend(li);
-  })
-}
+import axios from 'axios';
+import rssDiff from './rssDiff.js';
+import { renderContent, renderFeedback } from './render.js'
 
 function view(state, validate, i18n) {
   const form = document.querySelector('form');
   const rssInput = document.querySelector('#rssInput');
-  const feedback = document.querySelector('.feedback');
-
+  
   function loopUpdate() {
-    if (state.usedUrls.length === 0) {
-
+    if (state.contents.length === 0) {
       return setTimeout(loopUpdate, 5000);
     }
     setTimeout(() => {
-      fetchData(false);
+      state.tempContents = [];
+
+      const urls = state.contents.map((item) => item.url);
+      onChange.target(watchedFormState).state = '';
+      fetchData(urls, state.tempContents, 'update');
 
       return loopUpdate();
     }, 5000)
@@ -110,114 +26,99 @@ function view(state, validate, i18n) {
 
   loopUpdate()
 
-  const watchedState = onChange(state, (path, value) => {
-    switch (path) {
-      case 'rssInput':
-        if (state.usedUrls.includes(value)) {
-          onChange.target(watchedState).error = i18n.t('feedbackRssExists');
-          watchedState.isValid = false;
-        } else if (_.isEmpty(validate({url: value}))) {
-          watchedState.isValid = true;
-        } else {
-          onChange.target(watchedState).error = validate({url: value})[0].message
-          watchedState.isValid = false;
-        }
+  const watchedFormState = onChange(state.formState, (path, value) => {
+    switch (value) {
+      case 'failed':
+        rssInput.classList.add('is-invalid');
+        renderFeedback('failed', state.formState.errorMessage);
         break;
-      case 'isValid':
-        if (value) {
-          onChange.target(watchedState).usedUrls.push(state.rssInput);
-          fetchData();
-        } else {
-          rssInput.classList.add('is-invalid');
-          feedback.classList.remove('text-success');
-          feedback.classList.add('text-danger');
-          feedback.textContent = state.error;
-        }
+      case 'sending':
+        fetchData([rssInput.value], state.contents, 'loaded');
         break;
-      case 'filling':
+      case 'loaded':
+        renderFeedback('success', i18n.t('feedbackSuccess'));
+        renderContent(state.contents, i18n)
+
+        watchedFormState.state = 'ready';
         break;
-      case 'posts':
-        renderPosts(value, i18n, state);
+      case 'update':
+        state.tempContents.forEach((tempContent) => rssDiff(state.contents, tempContent))
+        renderContent(state.contents, i18n);
         break;
-      case 'feeds':
-        renderFeeds(value, i18n);
-        break;
+      case 'ready':
       default:
-        console.log('undefined option');
+        rssInput.classList.remove('is-invalid');
+        rssInput.value = '';
+        rssInput.focus();
         break;
     }
   })
 
-  const fetchData = (updateFeed = true) => {
-    let currentPosts = [];
 
-    let requests = state.usedUrls.map(url => {       
-      return axios.get(url).then((res) => new window.DOMParser().parseFromString(res.data, "text/xml"))
-    });
-
+  function fetchData(urls, container, operation) {
+    const requests = urls.map(url => axios.get(`https://allorigins.hexlet.app/raw?disableCache=true&url=${url}`)
+      .then(res => {
+        return {
+          data: new window.DOMParser().parseFromString(res.data, "text/xml"),
+          url: _.last(res.request.responseURL.split('&url='))
+        }
+      }))
+        
     Promise.all(requests)
-      .then(responses => {
-        let id = 0;
-
-        responses.forEach((data) => {
-          if (updateFeed) {
-            watchedState.feeds.push({
+      .then((datas) => datas.forEach(({data, url}) => {
+          container.unshift({
+            feed: {
               title: data.querySelector('channel title').textContent,
               description: data.querySelector('channel description').textContent,
-            })
-          }
-          
-          const posts = Array.from(data.querySelectorAll('item')).map((post) => {
-            id += 1;
-
-            return {
-              link: post.querySelector('link').textContent,
-              title: post.querySelector('title').textContent,
-              description: post.querySelector('description').textContent,
-              id: id,
-            };
+            },
+            posts: Array.from(data.querySelectorAll('item')).map((post) => {
+                return {
+                  link: post.querySelector('link').textContent,
+                  title: post.querySelector('title').textContent,
+                  description: post.querySelector('description').textContent,
+                  clicked: false,
+                };
+              }),
+            url: url,
           });
-
-        currentPosts.unshift(...posts)
-      })})
+      }))
       .then(() => {
-        watchedState.posts = [...currentPosts];
-
-        feedback.classList.remove('text-danger');
-        feedback.classList.add('text-success');
-        feedback.textContent = i18n.t('feedbackSuccess');
-
-        rssInput.classList.remove('is-invalid');
-        rssInput.value = '';
-        rssInput.focus();
+        watchedFormState.state = operation;
       })
       .catch((error) => {
         console.log(error)
-        onChange.target(watchedState).usedUrls.pop();
-        onChange.target(watchedState).isValid = '';
-        onChange.target(watchedState).error = i18n.t('feedbackOnloadProb');
-
-        watchedState.isValid = false;
+        onChange.target(watchedFormState).errorMessage = i18n.t('feedbackOnloadProb');
+        onChange.target(watchedFormState).state = '';
+        watchedFormState.state = 'failed';
       })
   }
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    onChange.target(watchedState).rssInput = '';
-    onChange.target(watchedState).isValid = '';
 
-    watchedState.rssInput = rssInput.value;
+    if (state.contents.map((item) => item.url).includes(rssInput.value)) {
+      onChange.target(watchedFormState).errorMessage = i18n.t('feedbackRssExists');
+      onChange.target(watchedFormState).state = '';
+      watchedFormState.state = 'failed';
+    } else if (_.isEmpty(validate({url: rssInput.value}))) {
+      watchedFormState.state = 'sending';
+    } else {
+      onChange.target(watchedFormState).errorMessage = validate({url: rssInput.value})[0].message;
+      watchedFormState.state = 'failed';
+    }
   })
 
   document.querySelector('.modal-footer .btn-primary').addEventListener('click', (e) => {
-
     Array.from(document.querySelectorAll('.posts ul li')).forEach((li) => {
       const a = li.querySelector('a')
-
-      if (a.href === e.target.href) {
-        a.className = 'fw-normal';
-        if (!state.clickedPostsIds.includes(Number(a.dataset.id))) {
-          state.clickedPostsIds.push(Number(a.dataset.id));
+      if (e.target.href === a.href) {
+        for (const { posts } of state.contents) {
+          for (const post of posts) {
+            if (post.link === e.target.href) {
+              a.className = 'fw-normal';
+              post.clicked =  true;
+            }
+          }
         }
       }
     })

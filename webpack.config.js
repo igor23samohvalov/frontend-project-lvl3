@@ -1,9 +1,8 @@
-// Generated using webpack-cli https://github.com/webpack/webpack-cli
-
 import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,9 +24,9 @@ const config = {
     new HtmlWebpackPlugin({
       template: "index.html",
     }),
-
-    // Add your plugins here
-    // Learn more about plugins from https://webpack.js.org/configuration/plugins/
+    new MiniCssExtractPlugin({
+      filename: "main.css",
+    }),
   ],
   module: {
     rules: [
@@ -37,7 +36,7 @@ const config = {
       },
       {
         test: /\.css$/i,
-        use: [stylesHandler, "css-loader"],
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
       {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
