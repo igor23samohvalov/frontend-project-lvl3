@@ -93,6 +93,10 @@ function view(state, validate, i18n) {
         watchedFormState.state = operation;
       })
       .catch((error) => {
+        if (operation === 'update') {
+          console.log('не удалось обновить RSS');
+          return;
+        } 
         if (error.response) {
           onChange.target(watchedFormState).errorMessage = i18n.t('feedbackOnloadProb');
           onChange.target(watchedFormState).state = '';
