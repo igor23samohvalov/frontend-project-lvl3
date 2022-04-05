@@ -63,6 +63,7 @@ function view(state, validate, i18n) {
 
 
   function fetchData(urls, container, operation) {
+    console.log(urls)
     const requests = urls.map(url => axios.get(`https://allorigins.hexlet.app/raw?disableCache=true&url=${url}`)
       .then(res => {
         return {
