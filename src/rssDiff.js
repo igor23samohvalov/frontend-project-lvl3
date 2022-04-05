@@ -14,7 +14,7 @@ export default (stateRss, updatedRss) => {
   const plainDifference = _.difference(simplifiedUpdatedRss, simplifiedEqualRss)
 
   if (plainDifference.length === 0) {
-    console.log('no difference what so ever')
+
     return;
   }
 

@@ -1,6 +1,6 @@
 import * as yup from 'yup';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import view from './view.js';
-import 'bootstrap';
 import i18next from 'i18next';
 import resources from './locales/index.js';
 import translate from './translate.js';
@@ -37,6 +37,8 @@ const validate = (fields) => {
   }
 };
 
-translate(i18n);
-
-view(state, validate, i18n);
+export default () => {
+  translate(i18n);
+  
+  view(state, validate, i18n);
+}
