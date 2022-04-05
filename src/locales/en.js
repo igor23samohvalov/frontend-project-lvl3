@@ -6,6 +6,8 @@ export default {
     "submitButton": "Add",
     "feedbackSuccess": "RSS successfully loaded",
     "feedbackOnloadProb": "Unknown issue. Something went wrong.",
+    "feedbackBadResponse": "No valid RSS in response",
+    "feedbackNoInternet": "Network error",
     "feedbackRssExists": "RSS is already added",
     "feedbackIsInvalid": "Invalid URL",
     "feedsHeader": "Feeds",

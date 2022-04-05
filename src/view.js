@@ -8,6 +8,7 @@ import { renderContent, renderFeedback } from './render.js'
 function view(state, validate, i18n) {
   const form = document.querySelector('form');
   const rssInput = document.querySelector('#rssInput');
+  const addButton = document.querySelector('button[type="submit"]');
   
   function loopUpdate() {
     if (state.contents.length === 0) {
@@ -31,8 +32,12 @@ function view(state, validate, i18n) {
       case 'failed':
         rssInput.classList.add('is-invalid');
         renderFeedback('failed', state.formState.errorMessage);
+        rssInput.removeAttribute('readonly');
+        addButton.disabled = false;
         break;
       case 'sending':
+        rssInput.setAttribute('readonly', 'readonly');
+        addButton.disabled = true;
         fetchData([rssInput.value], state.contents, 'loaded');
         break;
       case 'loaded':
@@ -48,6 +53,8 @@ function view(state, validate, i18n) {
       case 'ready':
       default:
         rssInput.classList.remove('is-invalid');
+        rssInput.removeAttribute('readonly');
+        addButton.disabled = false;
         rssInput.value = '';
         rssInput.focus();
         break;
@@ -86,10 +93,20 @@ function view(state, validate, i18n) {
         watchedFormState.state = operation;
       })
       .catch((error) => {
-        console.log(error)
-        onChange.target(watchedFormState).errorMessage = i18n.t('feedbackOnloadProb');
-        onChange.target(watchedFormState).state = '';
-        watchedFormState.state = 'failed';
+        if (error.response) {
+          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackBadResponse');
+          onChange.target(watchedFormState).state = '';
+          watchedFormState.state = 'failed';
+        } else if (error.request) {
+          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackNoInternet');
+          onChange.target(watchedFormState).state = '';
+          watchedFormState.state = 'failed';
+        } else {       
+          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackOnloadProb');
+          onChange.target(watchedFormState).state = '';
+          watchedFormState.state = 'failed';
+        }
+        console.log(error.config);
       })
   }
 

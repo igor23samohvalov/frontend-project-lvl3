@@ -6,6 +6,8 @@ export default {
     "submitButton": "Добавить",
     "feedbackSuccess": "RSS успешно загружен",
     "feedbackOnloadProb": "Неизвестная ошибка. Что-то пошло не так.",
+    "feedbackBadResponse": "Ресурс не содержит валидный RSS",
+    "feedbackNoInternet": "Ошибка сети",
     "feedbackRssExists": "RSS уже существует",
     "feedbackIsInvalid": "Ссылка должна быть валидным URL",
     "feedsHeader": "Фиды",
