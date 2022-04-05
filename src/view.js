@@ -94,17 +94,20 @@ function view(state, validate, i18n) {
       })
       .catch((error) => {
         if (error.response) {
-          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackBadResponse');
+          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackOnloadProb');
           onChange.target(watchedFormState).state = '';
           watchedFormState.state = 'failed';
+          console.log('Неизвестная ошибка. Что-то пошло не так.')
         } else if (error.request) {
           onChange.target(watchedFormState).errorMessage = i18n.t('feedbackNoInternet');
           onChange.target(watchedFormState).state = '';
           watchedFormState.state = 'failed';
+          console.log('Ошибка сети')
         } else {       
-          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackOnloadProb');
+          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackBadResponse');
           onChange.target(watchedFormState).state = '';
           watchedFormState.state = 'failed';
+          console.log('Ресурс не содержит валидный RSS')
         }
         console.log(error.config);
       })
