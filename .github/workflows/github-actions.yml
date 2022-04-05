@@ -11,5 +11,3 @@ jobs:
         run: make install
       - name: Run eslint
         run: make lint
-      - name: Run tests
-        run: npm run test
