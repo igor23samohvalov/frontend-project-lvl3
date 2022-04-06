@@ -1,12 +1,3 @@
-function renderContent(contents, i18n) {
-  document.querySelector('.feeds .list-group').innerHTML = '';
-  document.querySelector('.posts .list-group').innerHTML = '';
-  contents.forEach((rss) => {
-    renderFeed(rss.feed, i18n);
-    renderPosts(rss.posts, i18n);
-  })
-}
-
 function renderFeed(feed, i18n) {
   if (document.querySelector('.feeds .card-body') === null) {
     const div = document.createElement('div');
@@ -34,7 +25,6 @@ function renderFeed(feed, i18n) {
   li.append(h3);
   li.append(p);
   document.querySelector('.feeds .list-group').append(li);
-
 }
 
 function renderPosts(posts, i18n) {
@@ -53,14 +43,12 @@ function renderPosts(posts, i18n) {
   posts.forEach((post) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'justify-content-between', 'align-items-start', 'border-0', 'd-flex');
-  
-    
+
     const a = document.createElement('a');
     a.className = post.clicked ? 'fw-normal' : 'fw-bold';
     a.href = post.link;
     a.textContent = post.title;
     a.setAttribute('target', '_blank');
-    // a.setAttribute('data-id', post.id);
     a.addEventListener('click', () => {
       a.className = 'fw-normal';
       post.clicked = true;
@@ -70,7 +58,7 @@ function renderPosts(posts, i18n) {
     button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
     button.setAttribute('type', 'button');
     button.setAttribute('data-bs-toggle', 'modal');
-    button.setAttribute('data-bs-target', '#modal')
+    button.setAttribute('data-bs-target', '#modal');
     button.textContent = i18n.t('showButton');
     button.addEventListener('click', () => {
       document.querySelector('.modal-title').textContent = post.title;
@@ -79,19 +67,28 @@ function renderPosts(posts, i18n) {
 
       a.className = 'fw-normal';
       post.clicked = true;
-    })
+    });
 
     li.append(a);
     li.append(button);
     document.querySelector('.posts .list-group').append(li);
-  })
+  });
+}
+
+function renderContent(contents, i18n) {
+  document.querySelector('.feeds .list-group').innerHTML = '';
+  document.querySelector('.posts .list-group').innerHTML = '';
+  contents.forEach((rss) => {
+    renderFeed(rss.feed, i18n);
+    renderPosts(rss.posts, i18n);
+  });
 }
 
 function renderFeedback(state, message) {
   const feedback = document.querySelector('.feedback');
 
   switch (state) {
-    case 'success': 
+    case 'success':
       feedback.classList.remove('text-danger');
       feedback.classList.add('text-success');
       feedback.textContent = message;

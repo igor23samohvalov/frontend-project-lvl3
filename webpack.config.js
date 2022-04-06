@@ -1,55 +1,50 @@
 import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 // eslint-disable-next-line no-undef
-const isProduction = process.env.NODE_ENV == "production";
-
+const isProduction = process.env.NODE_ENV === 'production';
 
 const config = {
-  entry: "./src/init.js",
+  entry: './src/init.js',
   output: {
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(dirname, 'dist'),
   },
   devServer: {
     open: true,
-    host: "localhost",
+    host: 'localhost',
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "index.html",
+      template: 'index.html',
     }),
     new MiniCssExtractPlugin({
-      filename: "main.css",
+      filename: 'main.css',
     }),
   ],
   module: {
     rules: [
       {
         test: /\.css$/i,
-        use: [MiniCssExtractPlugin.loader, "css-loader"],
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
-        type: "asset",
+        type: 'asset',
       },
-
-      // Add your rules for custom modules here
-      // Learn more about loaders from https://webpack.js.org/loaders/
     ],
   },
 };
 
 export default () => {
   if (isProduction) {
-    config.mode = "production";
+    config.mode = 'production';
   } else {
-    config.mode = "development";
+    config.mode = 'development';
   }
   return config;
 };

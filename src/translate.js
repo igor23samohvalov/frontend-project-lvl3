@@ -1,4 +1,3 @@
-
 export default (i18n) => {
   const submitButton = document.querySelector('button[type="submit"]');
   const header = document.querySelector('h1.display-3');
@@ -9,10 +8,10 @@ export default (i18n) => {
 
   header.textContent = i18n.t('header');
   headerSubtitle.textContent = i18n.t('headerSubtitle');
-  rssInput.setAttribute('placeholder', i18n.t('label'))
+  rssInput.setAttribute('placeholder', i18n.t('label'));
   inputLabel.textContent = i18n.t('label');
   submitButton.textContent = i18n.t('submitButton');
   exampleUrl.textContent = i18n.t('example');
   document.querySelector('.modal-footer .btn-secondary').textContent = i18n.t('modalCloseButton');
   document.querySelector('.modal-footer .btn-primary').textContent = i18n.t('modalFollowLinkButton');
-}
+};

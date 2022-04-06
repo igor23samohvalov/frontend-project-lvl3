@@ -1,10 +1,8 @@
 import * as yup from 'yup';
-import view from './view.js';
 import i18next from 'i18next';
+import view from './view.js';
 import resources from './locales/index.js';
 import translate from './translate.js';
-
-
 
 export default () => {
   const defaultLanguage = 'ru';
@@ -17,17 +15,17 @@ export default () => {
     contents: [],
     tempContents: [],
     language: defaultLanguage,
-  }
+  };
 
-  const i18n = i18next.createInstance()
+  const i18n = i18next.createInstance();
   i18n.init({
-      lng: state.language, 
-      debug: true,
-      resources,
-    });
+    lng: state.language,
+    debug: true,
+    resources,
+  });
 
   const schema = yup.object().shape({
-    url: yup.string().url(i18n.t('feedbackIsInvalid')).required(i18n.t('shouldNotBeEmpty'))
+    url: yup.string().url(i18n.t('feedbackIsInvalid')).required(i18n.t('shouldNotBeEmpty')),
   });
 
   const validate = (fields) => {
@@ -40,6 +38,6 @@ export default () => {
   };
 
   translate(i18n);
-  
+
   view(state, validate, i18n);
-}
+};
