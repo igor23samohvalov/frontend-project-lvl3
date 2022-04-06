@@ -29,7 +29,6 @@ function view(state, validate, i18n) {
 
     console.log(value)
     console.log(state.contents.map((item) => item.url))
-    console.log(rssInput.value)
 
     switch (value.state) {
       case 'failed':
@@ -67,15 +66,10 @@ function view(state, validate, i18n) {
 
   function fetchData(urls, container, operation) {
     const requests = urls.map(url => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${url}`)
-      .then(res => {
-        return {
-          data: new window.DOMParser().parseFromString(res.data.contents, "text/xml"),
-          url: _.last(res.request.responseURL.split('&url='))
-        }
-      }))
+      .then(res => new window.DOMParser().parseFromString(res.data.contents, "text/xml")))
         
     Promise.all(requests)
-      .then((datas) => datas.forEach(({data, url}) => {
+      .then((datas) => datas.forEach((data, i) => {
           container.unshift({
             feed: {
               title: data.querySelector('channel title').textContent,
@@ -89,7 +83,7 @@ function view(state, validate, i18n) {
                   clicked: false,
                 };
               }),
-            url: url,
+            url: operation === 'loaded' ? rssInput.value : urls[i],
           });
       }))
       .then(() => {
@@ -97,6 +91,7 @@ function view(state, validate, i18n) {
       })
       .catch((error) => {
         if (operation === 'update') {
+          console.log('fail')
           return;
         } 
         if (error.response) {
