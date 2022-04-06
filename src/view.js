@@ -26,9 +26,11 @@ function view(state, validate, i18n) {
   loopUpdate()
 
   const watchedState = onChange(state, (path, value) => {
-    console.log(state)
+
+    console.log(path)
+    console.log(value)
     console.log(state.contents.map((item) => item.url))
-    console.log(rssInput.value)
+
     switch (value.state) {
       case 'failed':
         renderFeedback('failed', value.errorMessage);
@@ -68,7 +70,7 @@ function view(state, validate, i18n) {
       .then(res => {
         return {
           data: new window.DOMParser().parseFromString(res.data.contents, "text/xml"),
-          url: res.data.status.url,
+          url: _.last(res.request.responseURL.split('&url='))
         }
       }))
         
