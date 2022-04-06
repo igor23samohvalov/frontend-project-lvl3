@@ -16,9 +16,7 @@ function view(state, validate, i18n) {
     }
     setTimeout(() => {
       state.tempContents = [];
-
       const urls = state.contents.map((item) => item.url);
-      onChange.target(watchedFormState).state = '';
       fetchData(urls, state.tempContents, 'update');
 
       return loopUpdate();
@@ -27,11 +25,11 @@ function view(state, validate, i18n) {
 
   loopUpdate()
 
-  const watchedFormState = onChange(state.formState, (path, value) => {
-    switch (value) {
+  const watchedState = onChange(state, (path, value) => {
+    switch (value.state) {
       case 'failed':
+        renderFeedback('failed', value.errorMessage);
         rssInput.classList.add('is-invalid');
-        renderFeedback('failed', state.formState.errorMessage);
         rssInput.removeAttribute('readonly');
         addButton.disabled = false;
         break;
@@ -44,7 +42,7 @@ function view(state, validate, i18n) {
         renderFeedback('success', i18n.t('feedbackSuccess'));
         renderContent(state.contents, i18n)
 
-        watchedFormState.state = 'ready';
+        watchedState.formState = { state: 'ready', errorMessage: ''};
         break;
       case 'update':
         state.tempContents.forEach((tempContent) => rssDiff(state.contents, tempContent))
@@ -59,7 +57,7 @@ function view(state, validate, i18n) {
         rssInput.focus();
         break;
     }
-  })
+  }, { ignoredKeys: ['contents', 'tempContents']})
 
 
   function fetchData(urls, container, operation) {
@@ -90,24 +88,18 @@ function view(state, validate, i18n) {
           });
       }))
       .then(() => {
-        watchedFormState.state = operation;
+        watchedState.formState = { state: operation, errorMessage: ''};
       })
       .catch((error) => {
         if (operation === 'update') {
           return;
         } 
         if (error.response) {
-          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackOnloadProb');
-          onChange.target(watchedFormState).state = '';
-          watchedFormState.state = 'failed';
+          watchedState.formState = { state: 'failed', errorMessage: i18n.t('feedbackOnloadProb')};
         } else if (error.request) {
-          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackNoInternet');
-          onChange.target(watchedFormState).state = '';
-          watchedFormState.state = 'failed';
+          watchedState.formState = { state: 'failed', errorMessage: i18n.t('feedbackNoInternet')};
         } else {       
-          onChange.target(watchedFormState).errorMessage = i18n.t('feedbackBadResponse');
-          onChange.target(watchedFormState).state = '';
-          watchedFormState.state = 'failed';
+          watchedState.formState = { state: 'failed', errorMessage: i18n.t('feedbackBadResponse')};
         }
       })
   }
@@ -116,19 +108,13 @@ function view(state, validate, i18n) {
     e.preventDefault();
 
     if (state.contents.map((item) => item.url).includes(rssInput.value)) {
-      onChange.target(watchedFormState).errorMessage = i18n.t('feedbackRssExists');
-      onChange.target(watchedFormState).state = '';
-      watchedFormState.state = 'failed';
+      watchedState.formState = { state: 'failed', errorMessage: i18n.t('feedbackRssExists')};
     } else if (_.isEmpty(validate({url: rssInput.value}))) {
-      watchedFormState.state = 'sending';
+      watchedState.state = { state: 'sending', errorMessage: ''};
     } else if (rssInput.value === '') {
-      onChange.target(watchedFormState).errorMessage = i18n.t('shouldNotBeEmpty');
-      onChange.target(watchedFormState).state = '';
-      watchedFormState.state = 'failed';
+      watchedState.formState = { state: 'failed', errorMessage: i18n.t('shouldNotBeEmpty')};
     } else {
-      onChange.target(watchedFormState).errorMessage = validate({url: rssInput.value})[0].message;
-      onChange.target(watchedFormState).state = '';
-      watchedFormState.state = 'failed';
+      watchedState.formState = { state: 'failed', errorMessage: validate({url: rssInput.value})[0].message};
     }
   })
 
