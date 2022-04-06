@@ -13,7 +13,7 @@ export default {
     "shouldNotBeEmpty": "Не должно быть пустым",
     "feedsHeader": "Фиды",
     "postsHeader": "Посты",
-    "showButton": "Показать",
+    "showButton": "Просмотр",
     "example": "Пример: https://ru.hexlet.io/lessons.rss",
     "modalCloseButton": "Закрыть",
     "modalFollowLinkButton": "Читать полностью",
