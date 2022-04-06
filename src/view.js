@@ -26,10 +26,6 @@ function view(state, validate, i18n) {
   loopUpdate()
 
   const watchedState = onChange(state, (path, value) => {
-
-    console.log(value)
-    console.log(state.contents.map((item) => item.url))
-
     switch (value.state) {
       case 'failed':
         renderFeedback('failed', value.errorMessage);
@@ -118,23 +114,6 @@ function view(state, validate, i18n) {
     } else {
       watchedState.formState = { state: 'failed', errorMessage: validate({url: rssInput.value})[0].message};
     }
-  })
-
-  document.querySelector('.modal-footer .btn-primary').addEventListener('click', (e) => {
-    Array.from(document.querySelectorAll('.posts ul li')).forEach((li) => {
-      const a = li.querySelector('a')
-      if (e.target.href === a.href) {
-        for (const { posts } of state.contents) {
-          for (const post of posts) {
-            if (post.link === e.target.href) {
-              a.className = 'fw-normal';
-              post.clicked =  true;
-            }
-          }
-        }
-      }
-    })
-
   })
 }
 

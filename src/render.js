@@ -76,6 +76,9 @@ function renderPosts(posts, i18n) {
       document.querySelector('.modal-title').textContent = post.title;
       document.querySelector('.modal-body p').textContent = post.description;
       document.querySelector('.modal-footer .btn-primary').setAttribute('href', post.link);
+
+      a.className = 'fw-normal';
+      post.clicked = true;
     })
 
     li.append(a);
