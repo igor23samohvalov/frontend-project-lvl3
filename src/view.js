@@ -26,6 +26,8 @@ function view(state, validate, i18n) {
   loopUpdate()
 
   const watchedState = onChange(state, (path, value) => {
+    console.log(path)
+    console.log(value)
     switch (value.state) {
       case 'failed':
         renderFeedback('failed', value.errorMessage);
@@ -111,7 +113,7 @@ function view(state, validate, i18n) {
       watchedState.formState = { state: 'failed', errorMessage: i18n.t('feedbackRssExists')};
     } else if (_.isEmpty(validate({url: rssInput.value}))) {
       addButton.disabled = true;
-      watchedState.state = { state: 'sending', errorMessage: ''};
+      watchedState.formState = { state: 'sending', errorMessage: ''};
     } else if (rssInput.value === '') {
       watchedState.formState = { state: 'failed', errorMessage: i18n.t('shouldNotBeEmpty')};
     } else {
