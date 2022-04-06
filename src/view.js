@@ -26,6 +26,9 @@ function view(state, validate, i18n) {
   loopUpdate()
 
   const watchedState = onChange(state, (path, value) => {
+    console.log(state)
+    console.log(state.contents.map((item) => item.url))
+    console.log(rssInput.value)
     switch (value.state) {
       case 'failed':
         renderFeedback('failed', value.errorMessage);
