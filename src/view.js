@@ -38,7 +38,7 @@ function view(state, validate, i18n) {
         break;
       case 'sending':
         addButton.disabled = true;
-        rssInput.setAttribute('readonly', 'readonly');
+        
         fetchData([rssInput.value], state.contents, 'loaded');
         break;
       case 'loaded':
@@ -110,10 +110,11 @@ function view(state, validate, i18n) {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
 
+    rssInput.setAttribute('readonly', 'readonly');
+    addButton.disabled = true;
     if (state.contents.map((item) => item.url).includes(rssInput.value)) {
       watchedState.formState = { state: 'failed', errorMessage: i18n.t('feedbackRssExists')};
     } else if (_.isEmpty(validate({url: rssInput.value}))) {
-      addButton.disabled = true;
       watchedState.formState = { state: 'sending', errorMessage: ''};
     } else if (rssInput.value === '') {
       watchedState.formState = { state: 'failed', errorMessage: i18n.t('shouldNotBeEmpty')};
