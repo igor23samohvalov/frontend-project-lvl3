@@ -28,6 +28,7 @@ function view(state, validate, i18n) {
   const watchedState = onChange(state, (path, value) => {
     console.log(path)
     console.log(value)
+    console.log(state.contents.map((item) => item.url))
     switch (value.state) {
       case 'failed':
         renderFeedback('failed', value.errorMessage);
