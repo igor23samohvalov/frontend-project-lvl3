@@ -63,12 +63,10 @@ function view(state, validate, i18n) {
 
 
   function fetchData(urls, container, operation) {
-    console.log(urls)
-    const requests = urls.map(url => axios.get(`https://allorigins.hexlet.app/raw?disableCache=true&url=${url}`)
+    const requests = urls.map(url => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${url}`)
       .then(res => {
-        console.log(res.status)
         return {
-          data: new window.DOMParser().parseFromString(res.data, "text/xml"),
+          data: new window.DOMParser().parseFromString(res.data.contents, "text/xml"),
           url: _.last(res.request.responseURL.split('&url='))
         }
       }))

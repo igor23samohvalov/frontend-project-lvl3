@@ -100,6 +100,5 @@ function renderFeedback(state, message) {
       feedback.textContent = message;
       break;
   }
-  console.log(feedback.textContent)
 }
 export { renderContent, renderFeedback };
